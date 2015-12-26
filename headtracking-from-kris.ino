@@ -1,4 +1,6 @@
 /*
+Code below comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with minors updates.
+
 Based on the Madgwick algorithm found at:
  See: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
  
