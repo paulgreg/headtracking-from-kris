@@ -8,6 +8,10 @@ Based on the Madgwick algorithm found at:
  The MinIMU v1 has a roughly +/- 10degree accuracy
  The MinIMU v2 has a roughly +/- 1 degree accuracy
  */
+
+// Uncommenting following line will enable debugging output
+//#define DEBUG
+
 #include <LSM303.h>
 #include <L3G.h>
 #include <Wire.h>
@@ -77,14 +81,19 @@ boolean fixed;  //Lock in that heading
 int newhead;  //360 degree transformation
 
 void setup(){
-  //Serial.begin(115200);
-  //Serial.println("Keeping the device still and level during startup will yeild the best results");
+  #ifdef DEBUG
+  Serial.begin(115200);
+  Serial.println("Keeping the device still and level during startup will yield the best results");
+  #endif
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);   // set the LED on
   delay(100);
   Wire.begin();
   TWBR = ((F_CPU / 400000) - 16) / 2;//set the I2C speed to 400KHz
   IMUinit();
+  #ifdef DEBUG
+  Serial.println("IMUinit done");
+  #endif
   printTimer = millis();
   timer = micros();
   blinkCount = 0;
@@ -128,29 +137,23 @@ void loop(){
   if (millis() - printTimer > 10){
     printTimer = millis();
     GetEuler();
-    //Serial.print("!ANG:");   //This is what MinIMU-9-test.py is looking for
-    //Serial.print(roll);
     if (roll < 0){roll = fscale(-25, 0, 0, 512, roll,0);}
     else {roll = fscale(0, 25, 512, 1023, roll,0);}
     if (roll < 0){roll = 0;}
     if (roll > 1023){roll = 1023;}
     Joystick.X(roll);
-    //Serial.print(",");
-    //Serial.print(pitch);
     if (pitch < 0){pitch = fscale(-25, 0, 0, 512, pitch,0);}
     else {pitch = fscale(0, 25, 512, 1023, pitch,0);}
     if (pitch < 0){pitch = 0;}
     if (pitch > 1023){pitch = 1023;}
     Joystick.Y(pitch);
-    //Serial.print(",");
-    //Serial.println(yaw);
-
-    //DEBUG STUFF
-    //Serial.println(printTimer);
-    //Serial.print(smoothedYaw);
-    //Serial.print(", ");
-    //Serial.println(roll);
     
+    #ifdef DEBUG
+    Serial.print("roll: ");
+    Serial.print(roll);
+    Serial.print(", pitch: ");
+    Serial.println(pitch);
+    #endif
        
   if (fixed == false){
     blinkCount++;
@@ -250,9 +253,6 @@ void IMUinit(){
   if (yaw < 0){
     yaw += 360;
   }  
-  //Serial.println(roll);
-  //Serial.println(pitch);
-  //Serial.println(yaw);
   //calculate the rotation matrix
   float cosPitch = cos(ToRad(pitch));
   float sinPitch = sin(ToRad(pitch));
@@ -573,11 +573,6 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
   curve = (curve * -.1) ; // - invert and scale - this seems more intuitive - postive numbers give more weight to high end on output
   curve = pow(10, curve); // convert linear scale into lograthimic exponent for other pow function
 
-  /*
-   Serial.println(curve * 100, DEC);   // multply by 100 to preserve resolution  
-   Serial.println();
-   */
-
   // Check for out of range inputValues
   if (inputValue < originalMin) {
     inputValue = originalMin;
@@ -600,15 +595,6 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
 
   zeroRefCurVal = inputValue - originalMin;
   normalizedCurVal  =  zeroRefCurVal / OriginalRange;   // normalize to 0 - 1 float
-
-  /*
-  Serial.print(OriginalRange, DEC);  
-   Serial.print("   ");  
-   Serial.print(NewRange, DEC);  
-   Serial.print("   ");  
-   Serial.println(zeroRefCurVal, DEC);  
-   Serial.println();  
-   */
 
   // Check for originalMin > originalMax  - the math for all other cases i.e. negative numbers seems to work out fine
   if (originalMin > originalMax ) {
