@@ -4,7 +4,7 @@
   Based on the Madgwick algorithm found at:
   See: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
 
-  This code inherits all relevant liscenses and may be freely modified and redistributed.
+  This code inherits all relevant licenses and may be freely modified and redistributed.
   The MinIMU v1 has a roughly +/- 10degree accuracy
   The MinIMU v2 has a roughly +/- 1 degree accuracy
 */
@@ -101,10 +101,7 @@ void setup() {
   fixed = false;
 }
 
-
-
 void loop() {
-
   if (micros() - timer >= 5000) {
     //this runs in 4ms on the MEGA 2560
     G_Dt = (micros() - timer) / 1000000.0;
@@ -197,14 +194,11 @@ void loop() {
         fixed = true;
         digitalWrite(ledPin, HIGH);   // set the LED on
       }
-
     }
   }
-
 }
 
 void IMUinit() {
-
   //init devices
   compass.init();
   gyro.init();
@@ -310,15 +304,11 @@ void IMUinit() {
   float r23 = -1.0 * (sinRoll * cosYaw) + (cosRoll * sinPitch * sinYaw);
   float r33 = cosRoll * cosPitch;
 
-
-
   //convert to quaternion
   q0 = 0.5 * sqrt(1 + r11 + r22 + r33);
   q1 = (r32 - r23) / (4 * q0);
   q2 = (r13 - r31) / (4 * q0);
   q3 = (r21 - r12) / (4 * q0);
-
-
 }
 
 void IMUupdate(float *dt) {
@@ -421,7 +411,6 @@ void AHRSupdate(float *dt) {
   static float my;
   static float mz;
 
-
   static float recipNorm;
   static float s0, s1, s2, s3;
   static float qDot1, qDot2, qDot3, qDot4;
@@ -456,7 +445,6 @@ void AHRSupdate(float *dt) {
   // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
   if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
 
-
     // Normalise accelerometer measurement
     recipNorm = invSqrt(ax * ax + ay * ay + az * az);
     ax *= recipNorm;
@@ -488,8 +476,6 @@ void AHRSupdate(float *dt) {
     q2q2 = q2 * q2;
     q2q3 = q2 * q3;
     q3q3 = q3 * q3;
-
-
 
     // Reference direction of Earth's magnetic field
     hx = mx * q0q0 - _2q0my * q3 + _2q0mz * q2 + mx * q1q1 + _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
@@ -582,14 +568,11 @@ float invSqrt(float number) {
   return y;
 }
 
-
-
 void Smoothing(float *raw, float *smooth) {
   *smooth = (*raw * (0.15)) + (*smooth * 0.85);
 }
 
 float fscale( float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve) {
-
   float OriginalRange = 0;
   float NewRange = 0;
   float zeroRefCurVal = 0;
@@ -646,9 +629,4 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
 
   return rangedValue;
 }
-
-
-
-
-
 
