@@ -170,11 +170,11 @@ void IMUinit(){
   compass.init();
   gyro.init();
 
-  gyro.writeReg(L3G_CTRL_REG1, 0xCF);
-  gyro.writeReg(L3G_CTRL_REG2, 0x00);
-  gyro.writeReg(L3G_CTRL_REG3, 0x00);
-  gyro.writeReg(L3G_CTRL_REG4, 0x20); //
-  gyro.writeReg(L3G_CTRL_REG5, 0x02);
+  gyro.writeReg(0x20, 0xCF);
+  gyro.writeReg(0x21, 0x00);
+  gyro.writeReg(0x22, 0x00);
+  gyro.writeReg(0x23, 0x20);
+  gyro.writeReg(0x24, 0x02);
 
   compass.writeAccReg(LSM303_CTRL_REG1_A, 0x77);//400hz all enabled
   compass.writeAccReg(LSM303_CTRL_REG4_A, 0x20);//+/-8g 4mg/LSB
@@ -552,8 +552,7 @@ void Smoothing(float *raw, float *smooth){
   *smooth = (*raw * (0.15)) + (*smooth * 0.85);
 }
 
-float fscale( float originalMin, float originalMax, float newBegin, float
-newEnd, float inputValue, float curve){
+float fscale( float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve){
 
   float OriginalRange = 0;
   float NewRange = 0;
