@@ -23,23 +23,17 @@
 #define GYRO_SCALE 0.07f
 #define betaDef    0.08f
 
-//To find the calibration values us the sketch included with the LSM303 driver from pololu
-/*Change line 11 from
-  compass.enableDefault();
-  to
-  compass.writeMagReg(LSM303_CRA_REG_M, 0x1C);
-  compass.writeMagReg(LSM303_CRB_REG_M, 0x60);
-  compass.writeMagReg(LSM303_MR_REG_M, 0x00);
-
-  Then put the calibration values below
-*/
-
-#define compassXMin -283.0f
-#define compassYMin -186.0f
-#define compassZMin -198.0f
-#define compassXMax 395.0f
-#define compassYMax 488.0f
-#define compassZMax 413.0f
+/*
+ * To find the calibration values, load the Calibrate sketch from LSM303 library in menu : examples > LSM303 > Calibrate
+ * https://github.com/pololu/lsm303-arduino/blob/master/LSM303/examples/Calibrate/Calibrate.ino
+ * Then put the calibration values below
+ */
+#define compassXMin -363.0f
+#define compassYMin -407.0f
+#define compassZMin -382.0f
+#define compassXMax 380.0f
+#define compassYMax 354.0f
+#define compassZMax 265.0f
 #define inverseXRange (float)(2.0 / (compassXMax - compassXMin))
 #define inverseYRange (float)(2.0 / (compassYMax - compassYMin))
 #define inverseZRange (float)(2.0 / (compassZMax - compassZMin))
