@@ -8,3 +8,5 @@ To compile,you’ll need :
 
   - [L3G Libray 1.2.2](https://github.com/pololu/l3g-arduino)
   - [the ‘older’ LSM303 Library 1.4.4](https://github.com/pololu/lsm303-arduino/archive/1.4.4.zip)
+
+You can test the device with [jstest-gtk](https://github.com/Grumbel/jstest-gtk).
