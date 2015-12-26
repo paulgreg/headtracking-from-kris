@@ -1,13 +1,13 @@
 /*
-Code below comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with minors updates.
+  Code below comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with minors updates.
 
-Based on the Madgwick algorithm found at:
- See: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
- 
- This code inherits all relevant liscenses and may be freely modified and redistributed.
- The MinIMU v1 has a roughly +/- 10degree accuracy
- The MinIMU v2 has a roughly +/- 1 degree accuracy
- */
+  Based on the Madgwick algorithm found at:
+  See: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
+
+  This code inherits all relevant liscenses and may be freely modified and redistributed.
+  The MinIMU v1 has a roughly +/- 10degree accuracy
+  The MinIMU v2 has a roughly +/- 1 degree accuracy
+*/
 
 // Uncommenting following line will enable debugging output
 //#define DEBUG
@@ -25,14 +25,14 @@ Based on the Madgwick algorithm found at:
 
 //To find the calibration values us the sketch included with the LSM303 driver from pololu
 /*Change line 11 from
- compass.enableDefault();
- to 
- compass.writeMagReg(LSM303_CRA_REG_M, 0x1C);
- compass.writeMagReg(LSM303_CRB_REG_M, 0x60);
- compass.writeMagReg(LSM303_MR_REG_M, 0x00);  
- 
- Then put the calibration values below
- */
+  compass.enableDefault();
+  to
+  compass.writeMagReg(LSM303_CRA_REG_M, 0x1C);
+  compass.writeMagReg(LSM303_CRB_REG_M, 0x60);
+  compass.writeMagReg(LSM303_MR_REG_M, 0x00);
+
+  Then put the calibration values below
+*/
 
 #define compassXMin -283.0f
 #define compassYMin -186.0f
@@ -66,34 +66,34 @@ float beta;
 
 float magnitude;
 
-float pitch,roll,yaw;
+float pitch, roll, yaw;
 
-float gyroSumX,gyroSumY,gyroSumZ;
-float offSetX,offSetY,offSetZ;
+float gyroSumX, gyroSumY, gyroSumZ;
+float offSetX, offSetY, offSetZ;
 
-float floatMagX,floatMagY,floatMagZ;
-float smoothAccX,smoothAccY,smoothAccZ;
-float accToFilterX,accToFilterY,accToFilterZ;
+float floatMagX, floatMagY, floatMagZ;
+float smoothAccX, smoothAccY, smoothAccZ;
+float accToFilterX, accToFilterY, accToFilterZ;
 
 int i;
 int inithead;  //Store initial heading
 boolean fixed;  //Lock in that heading
 int newhead;  //360 degree transformation
 
-void setup(){
-  #ifdef DEBUG
+void setup() {
+#ifdef DEBUG
   Serial.begin(115200);
   Serial.println("Keeping the device still and level during startup will yield the best results");
-  #endif
+#endif
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);   // set the LED on
   delay(100);
   Wire.begin();
   TWBR = ((F_CPU / 400000) - 16) / 2;//set the I2C speed to 400KHz
   IMUinit();
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println("IMUinit done");
-  #endif
+#endif
   printTimer = millis();
   timer = micros();
   blinkCount = 0;
@@ -103,73 +103,107 @@ void setup(){
 
 
 
-void loop(){
+void loop() {
 
-  if (micros() - timer >= 5000){
+  if (micros() - timer >= 5000) {
     //this runs in 4ms on the MEGA 2560
-    G_Dt = (micros() - timer)/1000000.0;
-    timer=micros();
+    G_Dt = (micros() - timer) / 1000000.0;
+    timer = micros();
     compass.read();
     floatMagX = ((float)compass.m.x - compassXMin) * inverseXRange - 1.0;
     floatMagY = ((float)compass.m.y - compassYMin) * inverseYRange - 1.0;
     floatMagZ = ((float)compass.m.z - compassZMin) * inverseZRange - 1.0;
-    Smoothing(&compass.a.x,&smoothAccX);
-    Smoothing(&compass.a.y,&smoothAccY);
-    Smoothing(&compass.a.z,&smoothAccZ);
+    Smoothing(&compass.a.x, &smoothAccX);
+    Smoothing(&compass.a.y, &smoothAccY);
+    Smoothing(&compass.a.z, &smoothAccZ);
     accToFilterX = smoothAccX;
     accToFilterY = smoothAccY;
     accToFilterZ = smoothAccZ;
     gyro.read();
     AHRSupdate(&G_Dt);
-    
+
     //update the joystick heading coordinates
-        // modify degress for heading
-        newhead = yaw-inithead;
-        if(newhead > 180){newhead = -360+newhead;}
-        else if(newhead < -180){newhead = 360+newhead;}
-    if (newhead < 0){newhead = fscale(-40, 0, 0, 512, newhead,0);}
-    else {newhead = fscale(0, 40, 512, 1023, newhead,0);}
-    if (newhead < 0){newhead = 0;}
-    if (newhead > 1023){newhead = 1023;}
+    // modify degress for heading
+    newhead = yaw - inithead;
+    if (newhead > 180) {
+      newhead = -360 + newhead;
+    }
+    else if (newhead < -180) {
+      newhead = 360 + newhead;
+    }
+    if (newhead < 0) {
+      newhead = fscale(-40, 0, 0, 512, newhead, 0);
+    }
+    else {
+      newhead = fscale(0, 40, 512, 1023, newhead, 0);
+    }
+    if (newhead < 0) {
+      newhead = 0;
+    }
+    if (newhead > 1023) {
+      newhead = 1023;
+    }
     Joystick.Z(newhead);
   }
 
-  if (millis() - printTimer > 10){
+  if (millis() - printTimer > 10) {
     printTimer = millis();
     GetEuler();
-    if (roll < 0){roll = fscale(-25, 0, 0, 512, roll,0);}
-    else {roll = fscale(0, 25, 512, 1023, roll,0);}
-    if (roll < 0){roll = 0;}
-    if (roll > 1023){roll = 1023;}
+    if (roll < 0) {
+      roll = fscale(-25, 0, 0, 512, roll, 0);
+    }
+    else {
+      roll = fscale(0, 25, 512, 1023, roll, 0);
+    }
+    if (roll < 0) {
+      roll = 0;
+    }
+    if (roll > 1023) {
+      roll = 1023;
+    }
     Joystick.X(roll);
-    if (pitch < 0){pitch = fscale(-25, 0, 0, 512, pitch,0);}
-    else {pitch = fscale(0, 25, 512, 1023, pitch,0);}
-    if (pitch < 0){pitch = 0;}
-    if (pitch > 1023){pitch = 1023;}
+    if (pitch < 0) {
+      pitch = fscale(-25, 0, 0, 512, pitch, 0);
+    }
+    else {
+      pitch = fscale(0, 25, 512, 1023, pitch, 0);
+    }
+    if (pitch < 0) {
+      pitch = 0;
+    }
+    if (pitch > 1023) {
+      pitch = 1023;
+    }
     Joystick.Y(pitch);
-    
-    #ifdef DEBUG
+
+#ifdef DEBUG
     Serial.print("roll: ");
     Serial.print(roll);
     Serial.print(", pitch: ");
     Serial.println(pitch);
-    #endif
-       
-  if (fixed == false){
-    blinkCount++;
-    if (blinkCount > 15) {digitalWrite(ledPin, HIGH);}
-    if (blinkCount > 30) {digitalWrite(ledPin, LOW); blinkCount=0;}      
-    if (printTimer > headingtimeout) {inithead = yaw;
-      fixed = true;
-      digitalWrite(ledPin, HIGH);   // set the LED on
-    }
+#endif
+
+    if (fixed == false) {
+      blinkCount++;
+      if (blinkCount > 15) {
+        digitalWrite(ledPin, HIGH);
+      }
+      if (blinkCount > 30) {
+        digitalWrite(ledPin, LOW);
+        blinkCount = 0;
+      }
+      if (printTimer > headingtimeout) {
+        inithead = yaw;
+        fixed = true;
+        digitalWrite(ledPin, HIGH);   // set the LED on
+      }
 
     }
   }
 
 }
 
-void IMUinit(){
+void IMUinit() {
 
   //init devices
   compass.init();
@@ -186,29 +220,29 @@ void IMUinit(){
 
   compass.writeMagReg(LSM303_CRA_REG_M, 0x1C);
   compass.writeMagReg(LSM303_CRB_REG_M, 0x60);
-  compass.writeMagReg(LSM303_MR_REG_M, 0x00);  
+  compass.writeMagReg(LSM303_MR_REG_M, 0x00);
 
   beta = betaDef;
   //calculate initial quaternion
-  //take an average of the gyro readings to remove the bias 
+  //take an average of the gyro readings to remove the bias
 
-  for (i = 0; i < 500;i++){
+  for (i = 0; i < 500; i++) {
     gyro.read();
     compass.read();
-    Smoothing(&compass.a.x,&smoothAccX);
-    Smoothing(&compass.a.y,&smoothAccY);
-    Smoothing(&compass.a.z,&smoothAccZ);
+    Smoothing(&compass.a.x, &smoothAccX);
+    Smoothing(&compass.a.y, &smoothAccY);
+    Smoothing(&compass.a.z, &smoothAccZ);
     delay(3);
   }
   gyroSumX = 0;
   gyroSumY = 0;
   gyroSumZ = 0;
-  for (i = 0; i < 500;i++){
+  for (i = 0; i < 500; i++) {
     gyro.read();
     compass.read();
-    Smoothing(&compass.a.x,&smoothAccX);
-    Smoothing(&compass.a.y,&smoothAccY);
-    Smoothing(&compass.a.z,&smoothAccZ);
+    Smoothing(&compass.a.x, &smoothAccX);
+    Smoothing(&compass.a.y, &smoothAccY);
+    Smoothing(&compass.a.z, &smoothAccZ);
     gyroSumX += (gyro.g.x);
     gyroSumY += (gyro.g.y);
     gyroSumZ += (gyro.g.z);
@@ -219,27 +253,27 @@ void IMUinit(){
   offSetZ = gyroSumZ / 500.0;
   compass.read();
 
-  //calculate the initial quaternion 
+  //calculate the initial quaternion
   //these are rough values. This calibration works a lot better if the device is kept as flat as possible
   //find the initial pitch and roll
-  pitch = ToDeg(fastAtan2(compass.a.x,sqrt(compass.a.y * compass.a.y + compass.a.z * compass.a.z)));
-  roll = ToDeg(fastAtan2(-1*compass.a.y,sqrt(compass.a.x * compass.a.x + compass.a.z * compass.a.z)));
+  pitch = ToDeg(fastAtan2(compass.a.x, sqrt(compass.a.y * compass.a.y + compass.a.z * compass.a.z)));
+  roll = ToDeg(fastAtan2(-1 * compass.a.y, sqrt(compass.a.x * compass.a.x + compass.a.z * compass.a.z)));
 
 
-  if (compass.a.z > 0){
-    if (compass.a.x > 0){
+  if (compass.a.z > 0) {
+    if (compass.a.x > 0) {
       pitch = 180.0 - pitch;
     }
-    else{
+    else {
       pitch = -180.0 - pitch;
     }
-    if (compass.a.y > 0){
+    if (compass.a.y > 0) {
       roll = -180.0 - roll;
     }
-    else{
+    else {
       roll = 180.0 - roll;
     }
-  }  
+  }
 
   floatMagX = (compass.m.x - compassXMin) * inverseXRange - 1.0;
   floatMagY = (compass.m.y - compassYMin) * inverseYRange - 1.0;
@@ -248,11 +282,11 @@ void IMUinit(){
   float xMag = (floatMagX * cos(ToRad(pitch))) + (floatMagZ * sin(ToRad(pitch)));
   float yMag = -1 * ((floatMagX * sin(ToRad(roll))  * sin(ToRad(pitch))) + (floatMagY * cos(ToRad(roll))) - (floatMagZ * sin(ToRad(roll)) * cos(ToRad(pitch))));
 
-  yaw = ToDeg(fastAtan2(yMag,xMag));
+  yaw = ToDeg(fastAtan2(yMag, xMag));
 
-  if (yaw < 0){
+  if (yaw < 0) {
     yaw += 360;
-  }  
+  }
   //calculate the rotation matrix
   float cosPitch = cos(ToRad(pitch));
   float sinPitch = sin(ToRad(pitch));
@@ -280,9 +314,9 @@ void IMUinit(){
 
   //convert to quaternion
   q0 = 0.5 * sqrt(1 + r11 + r22 + r33);
-  q1 = (r32 - r23)/(4 * q0);
-  q2 = (r13 - r31)/(4 * q0);
-  q3 = (r21 - r12)/(4 * q0);
+  q1 = (r32 - r23) / (4 * q0);
+  q2 = (r13 - r31) / (4 * q0);
+  q3 = (r21 - r12) / (4 * q0);
 
 
 }
@@ -298,7 +332,7 @@ void IMUupdate(float *dt) {
   static float recipNorm;
   static float s0, s1, s2, s3;
   static float qDot1, qDot2, qDot3, qDot4;
-  static float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2 ,_8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
+  static float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2 , _8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
 
   gx = ToRad((gyro.g.x - offSetX) * GYRO_SCALE);
   gy = ToRad((gyro.g.y - offSetY) * GYRO_SCALE);
@@ -314,14 +348,14 @@ void IMUupdate(float *dt) {
   qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
 
   magnitude = sqrt(ax * ax + ay * ay + az * az);
-  if ((magnitude > 384) || (magnitude < 128)){
+  if ((magnitude > 384) || (magnitude < 128)) {
     ax = 0;
     ay = 0;
     az = 0;
   }
 
   // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
-  if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
+  if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
 
     // Normalise accelerometer measurement
     recipNorm = invSqrt(ax * ax + ay * ay + az * az);
@@ -413,14 +447,14 @@ void AHRSupdate(float *dt) {
 
   magnitude = sqrt(ax * ax + ay * ay + az * az);
 
-  if ((magnitude > 384) || (magnitude < 128)){
+  if ((magnitude > 384) || (magnitude < 128)) {
     ax = 0;
     ay = 0;
     az = 0;
   }
 
   // Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
-  if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
+  if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
 
 
     // Normalise accelerometer measurement
@@ -497,12 +531,12 @@ void AHRSupdate(float *dt) {
   q3 *= recipNorm;
 }
 
-void GetEuler(void){
-  roll = ToDeg(fastAtan2(2 * (q0 * q1 + q2 * q3),1 - 2 * (q1 * q1 + q2 * q2)));
+void GetEuler(void) {
+  roll = ToDeg(fastAtan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)));
   pitch = ToDeg(asin(2 * (q0 * q2 - q3 * q1)));
-  yaw = ToDeg(fastAtan2(2 * (q0 * q3 + q1 * q2) , 1 - 2* (q2 * q2 + q3 * q3)));
-  if (yaw < 0){
-    yaw +=360;
+  yaw = ToDeg(fastAtan2(2 * (q0 * q3 + q1 * q2) , 1 - 2 * (q2 * q2 + q3 * q3)));
+  if (yaw < 0) {
+    yaw += 360;
   }
 
 }
@@ -519,7 +553,7 @@ float fastAtan2( float y, float x)
   z = y / x;
   if ( fabs( z ) < 1.0f )
   {
-    atan = z/(1.0f + 0.28f*z*z);
+    atan = z / (1.0f + 0.28f * z * z);
     if ( x < 0.0f )
     {
       if ( y < 0.0f ) return atan - PI_FLOAT;
@@ -528,7 +562,7 @@ float fastAtan2( float y, float x)
   }
   else
   {
-    atan = PIBY2_FLOAT - z/(z*z + 0.28f);
+    atan = PIBY2_FLOAT - z / (z * z + 0.28f);
     if ( y < 0.0f ) return atan - PI_FLOAT;
   }
   return atan;
@@ -550,11 +584,11 @@ float invSqrt(float number) {
 
 
 
-void Smoothing(float *raw, float *smooth){
+void Smoothing(float *raw, float *smooth) {
   *smooth = (*raw * (0.15)) + (*smooth * 0.85);
 }
 
-float fscale( float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve){
+float fscale( float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve) {
 
   float OriginalRange = 0;
   float NewRange = 0;
@@ -584,7 +618,7 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
   // Zero Refference the values
   OriginalRange = originalMax - originalMin;
 
-  if (newEnd > newBegin){
+  if (newEnd > newBegin) {
     NewRange = newEnd - newBegin;
   }
   else
@@ -601,12 +635,12 @@ float fscale( float originalMin, float originalMax, float newBegin, float newEnd
     return 0;
   }
 
-  if (invFlag == 0){
+  if (invFlag == 0) {
     rangedValue =  (pow(normalizedCurVal, curve) * NewRange) + newBegin;
 
   }
-  else     // invert the ranges
-  {  
+  else // invert the ranges
+  {
     rangedValue =  newBegin - (pow(normalizedCurVal, curve) * NewRange);
   }
 
