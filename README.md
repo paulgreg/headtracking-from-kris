@@ -6,6 +6,7 @@ The code comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head
 
 To compile,you’ll need :
 
+  - [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html)
   - [L3G Libray 1.2.2](https://github.com/pololu/l3g-arduino)
   - [the ‘older’ LSM303 Library 1.4.4](https://github.com/pololu/lsm303-arduino/archive/1.4.4.zip)
 
