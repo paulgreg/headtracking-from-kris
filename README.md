@@ -2,7 +2,7 @@
 
 That project is about to build a head tracking device from an Teensy (Arduino clone) and an IMU Breakout (accelerometer + magnetometer).
 
-The code comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with little updates.
+The code comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with little updates. Many thanks to him !
 
 To compile,you’ll need :
 
