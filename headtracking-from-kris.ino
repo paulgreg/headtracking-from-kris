@@ -134,12 +134,12 @@ void loop() {
     if (newhead > 1023) {
       newhead = 1023;
     }
-    Joystick.Z(newhead);
+    Joystick.X(newhead);
   }
-
   if (millis() - printTimer > 10) {
     printTimer = millis();
     GetEuler();
+    
     if (roll < 0) {
       roll = fscale(-25, 0, 0, 512, roll, 0);
     }
@@ -152,7 +152,8 @@ void loop() {
     if (roll > 1023) {
       roll = 1023;
     }
-    Joystick.X(roll);
+    Joystick.Z(roll);
+    
     if (pitch < 0) {
       pitch = fscale(-25, 0, 0, 512, pitch, 0);
     }
