@@ -4,6 +4,8 @@ That project is about to build a head tracking device from an Teensy (Arduino cl
 
 The code comes from http://planetkris.com/2014/12/easier-better-arduino-imu-head-tracker/ with little updates. Many thanks to him !
 
+You’ll find more informations on [hackaday project page](https://hackaday.io/project/8952-elite-dangerous-headtracker).
+
 To compile,you’ll need :
 
   - [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html)
