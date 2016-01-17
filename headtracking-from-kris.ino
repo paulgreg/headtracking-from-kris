@@ -28,12 +28,12 @@
  * https://github.com/pololu/lsm303-arduino/blob/master/LSM303/examples/Calibrate/Calibrate.ino
  * Then put the calibration values below
  */
-#define compassXMin -363.0f
-#define compassYMin -407.0f
-#define compassZMin -382.0f
-#define compassXMax 380.0f
-#define compassYMax 354.0f
-#define compassZMax 265.0f
+#define compassXMin -310.0f
+#define compassYMin -351.0f
+#define compassZMin -327.0f
+#define compassXMax 290.0f
+#define compassYMax 263.0f
+#define compassZMax 208.0f
 #define inverseXRange (float)(2.0 / (compassXMax - compassXMin))
 #define inverseYRange (float)(2.0 / (compassYMax - compassYMin))
 #define inverseZRange (float)(2.0 / (compassZMax - compassZMin))
@@ -169,10 +169,12 @@ void loop() {
     Joystick.Y(pitch);
 
 #ifdef DEBUG
-    Serial.print("roll: ");
-    Serial.print(roll);
+    Serial.print("newhead: ");
+    Serial.print(newhead);
     Serial.print(", pitch: ");
-    Serial.println(pitch);
+    Serial.print(pitch);
+    Serial.print(", roll: ");
+    Serial.println(roll);
 #endif
 
     if (fixed == false) {
